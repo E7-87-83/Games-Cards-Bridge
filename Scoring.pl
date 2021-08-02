@@ -8,6 +8,7 @@ use Object::Pad;
 
 # a port using Object::Pad of Games::Cards::Bridge::Contract
 # Only dulipcate_score is ported.
+# check against : http://www.rpbridge.net/2y66.htm
 
 class Contract {
     has $declarer :param;   # N,E,S,W
@@ -181,11 +182,15 @@ class Scoring {
                 $partial_score = 100
                   if $_contract->get_dbl == 1;
                 $partial_score = 150
-                  if $_contract->get_dbl == 2 && $_contract->is_minor;
+                  if    $_contract->get_dbl == 2 
+                    && ($_contract->is_minor || $_contract->is_notrump);
                 $partial_score = 400
-                  if $_contract->get_dbl == 2 && $_contract->is_major;
+                  if    $_contract->get_dbl == 2
+                    && ($_contract->is_major || $_contract->is_notrump);
                 $partial_score += 200
-                  if $_contract->get_dbl == 2 && $_contract->is_major && $_contract->get_vul == 1;
+                  if    $_contract->get_dbl == 2 
+                    && ($_contract->is_major || $_contract->is_notrump) 
+                    && $_contract->get_vul == 1;
                 $score_gained += $partial_score;
             }
 
@@ -224,6 +229,8 @@ class Scoring {
 
 }
 
+# Test Script
+
 use strict;
 use warnings;
 use v5.10.0;
@@ -232,7 +239,7 @@ use Games::Cards::Bridge::Contract;
 
 my ($bid_val, $trump_chr) = split "", $ARGV[0];
 my $tricks_winned = $ARGV[1];
-my $pen = $ARGV[2] || 0;
+my $pen_val = $ARGV[2] || 0;
 my $vul_val = $ARGV[3] || 0;
 
 my $dw_score;
@@ -240,36 +247,64 @@ my $my_score;
 
 if ($tricks_winned < ($bid_val + 6)) {
 
-my $contract = Games::Cards::Bridge::Contract->new( declarer=>'N', trump=>$trump_chr, bid=>$bid_val, down=> (6 + $bid_val - $tricks_winned), vul=>$vul_val, penalty=>$pen);
-$dw_score = $contract->duplicate_score;
+    my $contract = Games::Cards::Bridge::Contract->new( 
+                     declarer=>'N', 
+                     trump=>$trump_chr, 
+                     bid=>$bid_val, 
+                     down=> (6 + $bid_val - $tricks_winned), 
+                     vul=>$vul_val, 
+                     penalty=>$pen_val,
+                   );
+    $dw_score = $contract->duplicate_score;
 
-say $dw_score;
+    say $dw_score;
 
 
-my $good = Contract->new( declarer => "N", trump=>$trump_chr, bid_finalized=>$bid_val, vul=>$vul_val, dbl=>$pen);
+    my $good = Contract->new(
+                 declarer => "N", 
+                 trump=>$trump_chr, 
+                 bid_finalized=>$bid_val, 
+                 vul=>$vul_val, 
+                 dbl=>$pen_val,
+               );
 
-my $end_board = Outcome->new(contract=>$good, tricks_winned => $tricks_winned);
+    my $end_board = Outcome->new(contract=>$good, tricks_winned => $tricks_winned);
 
-my $score = Scoring->new(contract=>$good, outcome=>$end_board);
-$my_score = $score->duplicate_score;
-say $my_score;
+    my $score = Scoring->new(contract=>$good, outcome=>$end_board);
+    $my_score = $score->duplicate_score;
+    say $my_score;
 
 
 } else {
 
-my $contract = Games::Cards::Bridge::Contract->new( declarer=>'N', trump=>$trump_chr, bid=>$bid_val, made=> ($tricks_winned - 6), vul=>$vul_val, penalty=>$pen);
-$dw_score = $contract->duplicate_score;
+    my $contract = Games::Cards::Bridge::Contract->new( 
+                     declarer=>'N', 
+                     trump=>$trump_chr, 
+                     bid=>$bid_val, 
+                     made=> ($tricks_winned - 6), 
+                     vul=>$vul_val, 
+                     penalty=>$pen,
+                   );
+                   
+    $dw_score = $contract->duplicate_score;
 
-say $dw_score;
+    say $dw_score;
 
-my $good = Contract->new( declarer => "N", trump=>$trump_chr, bid_finalized=>$bid_val, vul=>$vul_val, dbl=>$pen);
+    my $good = Contract->new(
+                 declarer => "N", 
+                 trump=>$trump_chr, 
+                 bid_finalized=>$bid_val, 
+                 vul=>$vul_val, 
+                 dbl=>$pen,
+               );
 
-my $end_board = Outcome->new(contract=>$good, tricks_winned => $tricks_winned);
+    my $end_board = Outcome->new(contract=>$good, tricks_winned => $tricks_winned);
 
-my $score = Scoring->new(contract=>$good, outcome=>$end_board);
-$my_score = $score->duplicate_score;
-say $my_score;
+    my $score = Scoring->new(contract=>$good, outcome=>$end_board);
+    $my_score = $score->duplicate_score;
+    say $my_score;
+
 }
 
 
-if ($my_score == $dw_score) {say "good"} else {say "BAD"}
+if ($my_score == $dw_score) {say "okay"} else {say "BAD"}
