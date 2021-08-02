@@ -6,8 +6,12 @@ use strict;
 use warnings;
 use Object::Pad;
 
-# a port using Object::Pad from Games::Cards::Bridge::Contract
-# Only dulipcate_score is ported.
+# a port using Object::Pad 
+# from Games::Cards::Bridge::Contract 0.02
+## Please see
+## https://metacpan.org/pod/Games::Cards::Bridge::Contract
+# Among different types of scoring,
+# only the method dulipcate_score is ported.
 
 class Contract {
     has $declarer :param;   # N,E,S,W
