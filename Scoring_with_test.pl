@@ -1,5 +1,5 @@
 # ================== THIS IS A DRAFT ==================
-# ================== 2021-08-02 19:48 HKT ==================
+# ================== 2021-08-02 20:56 HKT ==================
 
 { package Scoring;
 use strict;
@@ -7,8 +7,14 @@ use warnings;
 use Object::Pad;
 
 # a port using Object::Pad of Games::Cards::Bridge::Contract
+# by David Westbrook, released in 2006. 
+# See https://metacpan.org/pod/Games::Cards::Bridge::Contract
 # Only dulipcate_score is ported.
-# check against : http://www.rpbridge.net/2y66.htm
+
+# You may check against : http://www.rpbridge.net/2y66.htm
+
+# The program is release under Artistic License 2.0 .
+# See https://www.perlfoundation.org/artistic-license-20.html for details.
 
 class Contract {
     has $declarer :param;   # N,E,S,W
@@ -219,7 +225,7 @@ class Scoring {
               }
               $penalty_points *= 2 if $_contract->get_dbl == 2; # if redoubled
             }
-            return -$penalty_points
+            return -$penalty_points;
         }
     }
 
