@@ -1,7 +1,7 @@
 # ================== THIS IS A DRAFT ==================
-# ================== 2021-08-11 08:05 HKT ==================
+# ================== 2021-08-11 08:16 HKT ==================
 
-{ use Object::Pad 0.51;
+use Object::Pad 0.51;
 use Object::Pad::SlotAttr::Isa;
 
 # a port using Object::Pad of Games::Cards::Bridge::Contract
@@ -64,11 +64,7 @@ class Contract {
     }
 }
 
-1}
 
-{ use Object::Pad 0.51;
-use Object::Pad::SlotAttr::Isa;
-package Outcome;
 class Outcome {
     has $_contract :param :Isa(Contract);
     has $contract_made :reader :param = undef;      # undef or 1
@@ -109,14 +105,7 @@ class Outcome {
         $self->set_undertricks();
     }
 }
-
-1;
-}
 # ================== BEGIN Scoring part ========================
-
-{ use Object::Pad 0.51;
-use Object::Pad::SlotAttr::Isa;
-package Scoring;
 
 class Scoring {
     has $_contract :param :Isa(Contract);
@@ -219,8 +208,6 @@ class Scoring {
 
 }
 
-1;
-}
 
 # ==================  END  Scoring part ========================
 
@@ -308,8 +295,8 @@ if ($tricks_winned < ($bid_val + 6)) {
 
 
 if ($my_score == $dw_score) {
-    say "okay"
+    say "okay";
 } 
 else {
-    say "BAD"
+    say "BAD";
 }
