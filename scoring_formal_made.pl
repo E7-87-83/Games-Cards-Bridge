@@ -2,6 +2,10 @@ use strict;
 use warnings;
 use Test::More tests => 840;
 use Games::Cards::Bridge::Scoring;
+
+# port from Games-Cards-Bridge-Contract-0.02/t/scoring-duplicate.t, 
+# originally written by David Westbrook
+
 $|=1;
 
 sub check_scores {
