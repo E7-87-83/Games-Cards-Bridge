@@ -1,5 +1,3 @@
-# ================== THIS IS A DRAFT ==================
-# ================== 2021-08-11 19:30 HKT ==================
 use Object::Pad 0.51;
 use Object::Pad::SlotAttr::Isa;
 
@@ -104,7 +102,6 @@ class Outcome {
     
     }
 }
-# ================== BEGIN Scoring part ========================
 
 class Scoring {
     has $_outcome :param :Isa(Outcome);
@@ -175,18 +172,15 @@ class Scoring {
                 $partial_score = 550 
                   if $_contract->dbl == 1 && (!$_contract->minor) && ($_contract->vul) && $_contract->get_bid > 2;
 
-
                 $partial_score = 100
                   if $_contract->dbl == 1 && (!$_contract->minor) && (!$_contract->vul) && $_contract->get_bid == 1;
                 $partial_score = 100
                   if $_contract->dbl == 1 && (!$_contract->minor) && ($_contract->vul) && $_contract->get_bid == 1;
 
-
                 $partial_score = 350
                   if $_contract->dbl == 1 && $_contract->minor && (!$_contract->vul) && $_contract->get_bid > 2;  
                 $partial_score = 550
                   if $_contract->dbl == 1 && $_contract->minor && $_contract->vul && $_contract->get_bid > 2;     
-
 
                 $partial_score = 150
                   if $_contract->dbl == 2 && $_contract->minor && (!$_contract->vul) && $_contract->get_bid < 2; 
@@ -197,7 +191,6 @@ class Scoring {
                   if $_contract->dbl == 2 && $_contract->minor && (!$_contract->vul) && $_contract->get_bid >= 2;
                 $partial_score = 600
                   if $_contract->dbl == 2 && $_contract->minor && $_contract->vul && $_contract->get_bid >= 2;   
-
 
                 $partial_score = 400
                   if $_contract->dbl == 2 && (!$_contract->minor) && (!$_contract->vul);      
@@ -246,6 +239,6 @@ class Scoring {
 }
 
 
-# ==================  END  Scoring part ========================
+# ================== 2021-08-11 19:30 HKT ==================
 
 __END__
