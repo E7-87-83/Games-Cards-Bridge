@@ -1,13 +1,10 @@
 # ================== THIS IS A DRAFT ==================
-# ================== 2021-08-11 06:48 HKT ==================
+# ================== 2021-08-11 08:05 HKT ==================
 
-{
-use Object::Pad 0.51;
+{ use Object::Pad 0.51;
 use Object::Pad::SlotAttr::Isa;
-package Scoring;
-class Scoring;
 
-# a port using Object::Pad from Games::Cards::Bridge::Contract
+# a port using Object::Pad of Games::Cards::Bridge::Contract
 # Only dulipcate_score is ported (rubber_score is NOT ported).
 
 class Contract {
@@ -16,12 +13,12 @@ class Contract {
     has $bid_finalized :param = undef; # 1..7
     has $vul :reader :param = undef ;      # 0 or 1
     has $dbl :reader :param = undef; # 0->none 1->X  2->XX
-    has $minor :param = undef;     # 0 or 1
-    has $major :param = undef;     # 0 or 1
-    has $notrump :param = undef;     # 0 or 1
-    has $small_slam :param = undef;     # 0 or 1
-    has $grand_slam :param = undef;     # 0 or 1
-    has $game :param = undef;           # 0 or 1
+    has $minor :reader :param = undef;     # 0 or 1
+    has $major :reader :param = undef;     # 0 or 1
+    has $notrump :reader :param = undef;     # 0 or 1
+    has $small_slam :reader :param = undef;     # 0 or 1
+    has $grand_slam :reader :param = undef;     # 0 or 1
+    has $game :reader :param = undef;           # 0 or 1
 
     method is_minor {
         return $minor = ($trump =~ m/^[CD]$/);
@@ -56,6 +53,7 @@ class Contract {
         return $bid_finalized;
     }
 
+
     BUILD {
         $self->is_minor();
         $self->is_major();
@@ -66,10 +64,15 @@ class Contract {
     }
 }
 
+1}
+
+{ use Object::Pad 0.51;
+use Object::Pad::SlotAttr::Isa;
+package Outcome;
 class Outcome {
     has $_contract :param :Isa(Contract);
-    has $contract_made :param = undef;      # undef or 1
-    has $tricks_winned :param; 
+    has $contract_made :reader :param = undef;      # undef or 1
+    has $tricks_winned :reader :param; 
     has $overtricks :param = undef;
     has $undertricks :param = undef;
 
@@ -89,7 +92,7 @@ class Outcome {
     
     method set_undertricks {
         if (!$contract_made) {
-            $undertricks = $_contract->get_bid - $tricks_winned;
+            $undertricks = 6 + $_contract->get_bid - $tricks_winned;
         }
         else {
             $undertricks = 0;
@@ -99,7 +102,6 @@ class Outcome {
 
     method get_overtricks {return $overtricks;}
     method get_undertricks {return $undertricks;}
-
     
     BUILD {
         $self->is_contract_made();
@@ -108,61 +110,84 @@ class Outcome {
     }
 }
 
+1;
+}
+# ================== BEGIN Scoring part ========================
+
+{ use Object::Pad 0.51;
+use Object::Pad::SlotAttr::Isa;
+package Scoring;
+
 class Scoring {
     has $_contract :param :Isa(Contract);
-    has $_outcome :param Isa(Outcome);
+    has $_outcome :param :Isa(Outcome);
     has $score_gained :param = undef;           
     has $penalty_points :param = undef;
 
     method duplicate_score {
-        if ($_outcome->is_contract_made) {
+        if ($_outcome->contract_made) {
             $score_gained = 0;
             # below: contract points
             my $cntrct_pt = 0;
             $cntrct_pt += 40 if $_contract->trump eq "N";
-            $cntrct_pt += 30 if $_contract->is_major == 1;
-            $cntrct_pt += 20 if $_contract->is_minor == 1;
+            $cntrct_pt += 30 if $_contract->major;
+            $cntrct_pt += 20 if $_contract->minor;
             my $each_cntrct_pt = 0;
             if ($_contract->get_bid > 1) {
-                if ($_contract->trump =~ m/^[NSH]$/ ) {
+                if ($_contract->major || $_contract->notrump ) {
                     $each_cntrct_pt = 30;
                 }
                 else {
                     $each_cntrct_pt = 20;
                 }
-                $cntrct_pt += $each_cntrct_pt*($_contract->get_bid-1);
+                $cntrct_pt += $each_cntrct_pt*($_contract->get_bid - 1);
             }
-            $cntrct_pt *= 2**($_contract->dbl); #dbl
+            $cntrct_pt *= (2**($_contract->dbl)); #dbl
             $score_gained += $cntrct_pt;
-            # below: game or partial score
-            if ($_contract->is_game) {
-                $score_gained +=
-                  $_contract->vul ? 500 : 300;
-            }
-            else {
-                $score_gained += 50;
-            }
             # below: overtrick points
-            my $each_over_tk_pt = $_contract->is_minor ? 20 : 30;
+            my $each_over_tk_pt = $_contract->minor ? 20 : 30;
             if ($_contract->dbl > 0) {
                 $each_over_tk_pt = 100;
                 $each_over_tk_pt *= 2 if $_contract->dbl == 2;
+                $each_over_tk_pt *= 2 if $_contract->vul == 1;
             }
             $score_gained +=
               $each_over_tk_pt * $_outcome->get_overtricks;
             # below: small slam bonus
-            if ($_contract->is_small_slam) {
+            if ($_contract->small_slam) {
                 $score_gained +=
                   $_contract->vul ? 750 : 500;
             }
             # below: grand slam bonus
-            if ($_contract->is_grand_slam) {
+            if ($_contract->grand_slam) {
                 $score_gained +=
                   $_contract->vul ? 1500 : 1000;
             }
-            # below: double or redoubled bonus
-            $score_gained += 50*$_contract->dbl;
-            # ---
+            # below: double or redoubled bonus in game
+            if ($_contract->game) {
+                $score_gained += 50*$_contract->dbl;
+            }
+            # game score
+            if ($_contract->game) {
+                $score_gained +=
+                  $_contract->vul ? 500 : 300;
+            }
+            # below: partial score
+            if (!$_contract->game) {
+                my $partial_score = 0;
+                $partial_score = 50
+                  if $_contract->dbl == 0;
+                $partial_score = 100
+                  if $_contract->dbl == 1;
+                $partial_score = 150
+                  if $_contract->dbl == 2 && $_contract->minor;
+                $partial_score = 400
+                  if $_contract->dbl == 2 && $_contract->major;
+                $partial_score += 200
+                  if $_contract->dbl == 2 && $_contract->major && $_contract->vul == 1;
+                $score_gained += $partial_score;
+            }
+
             $penalty_points = 0;
             return $score_gained;
         }
@@ -195,8 +220,9 @@ class Scoring {
 }
 
 1;
-
 }
+
+# ==================  END  Scoring part ========================
 
 # Test Script
 
@@ -216,37 +242,74 @@ my $my_score;
 
 if ($tricks_winned < ($bid_val + 6)) {
 
-    my $contract = Games::Cards::Bridge::Contract->new( declarer=>'N', trump=>$trump_chr, bid=>$bid_val, down=> (6 + $bid_val - $tricks_winned), vul=>$vul_val, penalty=>$pen_val);
+    my $contract = Games::Cards::Bridge::Contract->new( 
+            declarer=>'N', 
+            trump=>$trump_chr, 
+            bid=>$bid_val, 
+            down=> (6 + $bid_val - $tricks_winned), 
+            vul=>$vul_val, 
+            penalty=>$pen_val
+        );
     $dw_score = $contract->duplicate_score;
 
-    say $dw_score;
+    say "dw_score: ", $dw_score;
 
 
-    my $good = Contract->new( declarer => "N", trump=>$trump_chr, bid_finalized=>$bid_val, vul=>$vul_val, dbl=>$pen_val);
+    my $good = Contract->new( 
+            declarer => "N", 
+            trump=>$trump_chr, 
+            bid_finalized=>$bid_val, 
+            vul=>$vul_val, 
+            dbl=>$pen_val
+        );
 
-    my $end_board = Outcome->new(contract=>$good, tricks_winned => $tricks_winned);
+    my $end_board = Outcome->new(
+            contract=>$good, 
+            tricks_winned => $tricks_winned
+        );
 
     my $score = Scoring->new(contract=>$good, outcome=>$end_board);
     $my_score = $score->duplicate_score;
-    say $my_score;
+    say "my_score: ", $my_score;
 
 
 } else {
 
-    my $contract = Games::Cards::Bridge::Contract->new( declarer=>'N', trump=>$trump_chr, bid=>$bid_val, made=> ($tricks_winned - 6), vul=>$vul_val, penalty=>$pen_val);
+    my $contract = Games::Cards::Bridge::Contract->new( 
+            declarer=>'N', 
+            trump=>$trump_chr, 
+            bid=>$bid_val, 
+            made=> ($tricks_winned - 6), 
+            vul=>$vul_val, 
+            penalty=>$pen_val
+        );
     $dw_score = $contract->duplicate_score;
 
-    say $dw_score;
+    say "dw_score: ", $dw_score;
 
-    my $good = Contract->new( declarer => "N", trump=>$trump_chr, bid_finalized=>$bid_val, vul=>$vul_val, dbl=>$pen_val);
+    my $good = Contract->new( 
+            declarer => "N", 
+            trump=>$trump_chr, 
+            bid_finalized=>$bid_val, 
+            vul=>$vul_val, 
+            dbl=>$pen_val
+        );
 
-    my $end_board = Outcome->new(contract=>$good, tricks_winned => $tricks_winned);
+    my $end_board = Outcome->new(
+            contract=>$good, 
+            tricks_winned => $tricks_winned
+        );
 
     my $score = Scoring->new(contract=>$good, outcome=>$end_board);
     $my_score = $score->duplicate_score;
-    say $my_score;
+    say "my_score: ", $my_score;
 
 }
 
 
-if ($my_score == $dw_score) {say "okay"} else {say "BAD"}
+if ($my_score == $dw_score) {
+    say "okay"
+} 
+else {
+    say "BAD"
+}
