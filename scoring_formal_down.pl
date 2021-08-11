@@ -3,6 +3,9 @@ use warnings;
 use Test::More tests => 78;
 use Games::Cards::Bridge::Scoring;
 
+# port from Games-Cards-Bridge-Contract-0.02/t/scoring-defeated.t, 
+# originally written by David Westbrook
+
 while(<DATA>){
   s/^\s+//g;
   s/\s+$//sg;
