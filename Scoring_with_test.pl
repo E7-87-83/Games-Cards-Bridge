@@ -1,5 +1,6 @@
+
 # ================== THIS IS A DRAFT ==================
-# ================== 2021-08-11 08:16 HKT ==================
+# ================== 2021-08-11 11:31 HKT ==================
 
 use Object::Pad 0.51;
 use Object::Pad::SlotAttr::Isa;
@@ -66,11 +67,11 @@ class Contract {
 
 
 class Outcome {
-    has $_contract :param :Isa(Contract);
+    has $_contract :reader :param :Isa(Contract);
     has $contract_made :reader :param = undef;      # undef or 1
     has $tricks_winned :reader :param; 
-    has $overtricks :param = undef;
-    has $undertricks :param = undef;
+    has $overtricks :reader :param = undef;
+    has $undertricks :reader :param = undef;
 
     method is_contract_made {
         return $contract_made = 
@@ -95,9 +96,6 @@ class Outcome {
         }
     }
 
-
-    method get_overtricks {return $overtricks;}
-    method get_undertricks {return $undertricks;}
     
     BUILD {
         $self->is_contract_made();
@@ -108,8 +106,8 @@ class Outcome {
 # ================== BEGIN Scoring part ========================
 
 class Scoring {
-    has $_contract :param :Isa(Contract);
     has $_outcome :param :Isa(Outcome);
+    has $_contract :param :Isa(Contract) = undef;
     has $score_gained :param = undef;           
     has $penalty_points :param = undef;
 
@@ -141,7 +139,7 @@ class Scoring {
                 $each_over_tk_pt *= 2 if $_contract->vul == 1;
             }
             $score_gained +=
-              $each_over_tk_pt * $_outcome->get_overtricks;
+              $each_over_tk_pt * $_outcome->overtricks;
             # below: small slam bonus
             if ($_contract->small_slam) {
                 $score_gained +=
@@ -182,29 +180,35 @@ class Scoring {
         }
         else {
             if ($_contract->dbl == 0) {  # undoubled
-                $penalty_points += 50*$_outcome->get_undertricks;
+                $penalty_points += 50*$_outcome->undertricks;
                 $penalty_points *= 2 if $_contract->vul;
                 $score_gained = 0;
             }
             else {             # doubled or redoubled
               if ($_contract->vul == 1) {  # vulnerable
                 $penalty_points = 200;
-                $penalty_points += 300*($_outcome->get_undertricks-1)
-                     if $_outcome->get_undertricks >= 2;
+                $penalty_points += 300*($_outcome->undertricks-1)
+                     if $_outcome->undertricks >= 2;
                 
               }
               else {           # non-vulnerable
                 $penalty_points = 100;
-                $penalty_points += 200 if $_outcome->get_undertricks >= 2;
-                $penalty_points += 200 if $_outcome->get_undertricks >= 3;
-                $penalty_points += 300*($_outcome->get_undertricks - 3)
-                     if $_outcome->get_undertricks >= 4;
+                $penalty_points += 200 if $_outcome->undertricks >= 2;
+                $penalty_points += 200 if $_outcome->undertricks >= 3;
+                $penalty_points += 300*($_outcome->undertricks - 3)
+                     if $_outcome->undertricks >= 4;
               }
               $penalty_points *= 2 if $_contract->dbl == 2; # if redoubled
             }
             return -$penalty_points
         }
     }
+
+
+    BUILD {
+        $_contract = $_outcome->contract;
+    }
+
 
 }
 
@@ -242,20 +246,20 @@ if ($tricks_winned < ($bid_val + 6)) {
     say "dw_score: ", $dw_score;
 
 
-    my $good = Contract->new( 
+    my $my_contract = Contract->new( 
             declarer => "N", 
             trump=>$trump_chr, 
             bid_finalized=>$bid_val, 
             vul=>$vul_val, 
-            dbl=>$pen_val
+            dbl=>$pen_val,
         );
 
-    my $end_board = Outcome->new(
-            contract=>$good, 
+    my $my_outcome = Outcome->new(
+            contract=>$my_contract, 
             tricks_winned => $tricks_winned
         );
 
-    my $score = Scoring->new(contract=>$good, outcome=>$end_board);
+    my $score = Scoring->new(outcome=>$my_outcome);
     $my_score = $score->duplicate_score;
     say "my_score: ", $my_score;
 
@@ -274,20 +278,23 @@ if ($tricks_winned < ($bid_val + 6)) {
 
     say "dw_score: ", $dw_score;
 
-    my $good = Contract->new( 
+    my $my_contract = Contract->new( 
             declarer => "N", 
             trump=>$trump_chr, 
             bid_finalized=>$bid_val, 
             vul=>$vul_val, 
-            dbl=>$pen_val
+            dbl=>$pen_val,
         );
 
-    my $end_board = Outcome->new(
-            contract=>$good, 
-            tricks_winned => $tricks_winned
+    my $my_outcome = Outcome->new(
+            contract=>$my_contract, 
+            tricks_winned => $tricks_winned,
         );
 
-    my $score = Scoring->new(contract=>$good, outcome=>$end_board);
+    my $score = Scoring->new(
+            contract=>$my_contract, 
+            outcome=>$my_outcome,
+        );
     $my_score = $score->duplicate_score;
     say "my_score: ", $my_score;
 
