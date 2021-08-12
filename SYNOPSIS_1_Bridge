@@ -20,7 +20,7 @@ my $x_auction = Auction->new(
 
 my $x_contract = $x_auction->contract;
 
-my $x_carding = Carding->new(process => [
+my $x_carding = Carding->new(declarer=>"S", trump=>"NT", process => [
     "5H", "4H", "AH", "TH", # East wins this trick  
     "2S", "AS", "7S", "6S", # South wins this trick
     "QD", "KD", "AD", "4D", # North wins this trick
@@ -45,7 +45,7 @@ my $christmas = Board->new(auction=>$x_auction, play=>$x_carding);
 
 say $christmas->describe_contract;
 
-# NS side: 3NT, vulnerable; declarer: South
+# NS side: 3NT, vulnerable; declarer: South; dummy: North.
 
 say $christmas->describe_outcome;
 
