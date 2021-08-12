@@ -5,7 +5,7 @@ use v5.10.0;
 
 
 
-# Example from Card Play
+# Example from Card Play (I)
 
 my $ex1_carding = Carding->new(
   declarer=>"S", 
@@ -18,10 +18,11 @@ my $ex1_carding = Carding->new(
 
 say $ex1_carding->remaining_tricks;   # 12
 say $ex1_carding->who_to_play_next;   # "W" (West)
+say $ex1_carding->is_completed;    # print 0
+say $ex1_carding->is_legitimate;  # print 1
 
 
-
-# Example from Card Play
+# Example from Card Play (II)
 
 my $ex2_carding = Carding->new(
   declarer=>"N", 
@@ -35,6 +36,8 @@ say $ex2_carding->remaining_tricks;   # 12
 say $ex2_carding->who_to_play_next;   # "W" (West)
 say $ex2_carding->tricks_winned_by_NS;   # 0
 say $ex2_carding->tricks_winned_by_EW;   # 1
+say $ex2_carding->is_completed;    # print 0
+say $ex2_carding->is_legitimate;  # print 1
 
 
 if ($ex2_carding->is_board_completed) {
