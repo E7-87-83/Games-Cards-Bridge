@@ -1,0 +1,62 @@
+# SYNOPSIS
+
+use Games::Cards::Bridge;
+use strict;
+use warnings;
+use v5.10.0;
+
+my $x_auction = Auction->new(
+    dealer => "E", 
+    vul_NS => 1 , 
+    vul_EW => 1 , 
+    process => [
+#    W     N      E    S 
+                "P", "1C", 
+    "1H", "2C", "2H", "X", 
+     "P", "3D", "P", "3NT" ,
+     "P",  "P", "P"
+  ]
+);
+
+my $x_contract = $auction->contract;
+
+my $x_carding = Carding->new(process => [
+    "5H", "4H", "AH", "TH", # East wins this trick  
+    "2S", "AS", "7S", "6S", # South wins this trick
+    "QD", "KD", "AD", "4D", # North wins this trick
+    "9C", "QC", "KC", "7C"  # Souht wins this trick
+
+    "JC", "5C", "2C", "3C", # South wins this trick
+    "TC", "2D", "4C", "3S", # South wins this trick
+    "4S", "JS", "9S", "KS", # East wins this trick
+    "JD", "6D", "8D", "3D", # East wins this trick
+
+    "TD", "6C", "6H", "5D", # East wins this trick
+    "9D", "8S", "2H", "7D", # East wins this trick
+    "9H", "QH", "KH", "7H", # West wins this trick
+    "QS", "JH", "5S", "TS", # West wins this trick
+
+    "8H", "AC", "3H", "8C"  # West wins this trick
+  ]
+);
+
+
+my $christmas = Board->new(auction=>$x_auction, play=>$x_carding);
+
+say $christmas->describe_contract;
+
+# NS side: 3NT, vulnerable; declarer: South
+
+say $christmas->describe_outcome;
+
+# 5 Tricks Taken; Down 4.
+
+say "The ", sort($christmas->declarer, $christmas->declarer_partner), 
+    " side: ", $christmas->duplicate_score, "points.";
+
+# The NS side: -400 points.
+
+say "The ", $christmas->declarer_side, " side: ",
+    $christmas->duplicate_score, "points.";
+
+# The North-South side: -400 points.
