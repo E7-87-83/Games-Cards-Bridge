@@ -1,0 +1,22 @@
+# SYNOPSIS
+
+use Games::Cards::Bridge::Bidding;
+
+my $ex1_auction = Auction->new(
+    dealer => "N", 
+    vul_NS => 0 , 
+    vul_EW => 0 , 
+    process => [
+#    W     N      E    S 
+           "P",  "P", "1C", 
+    "P", "1NT",  "P", "3NT",
+    "P",   "P",  "P"
+  ]
+);
+
+say $ex1_auction->is_legitimate;  # print 1
+
+say $ex1_auction->is_completed;   # print 1
+
+say $ex1_auction->contract->describe_contract;  
+# NS side: 3NT, non-vulnerable; declarer: North; dummy: South 
