@@ -12,8 +12,8 @@ See https://www.perlfoundation.org/artistic-license-20.html for details.
 
 # Modules
 
-* Games::Cards::Bridge::Objects;
-* Games::Cards::Bridge::Bidding;
-* Games::Cards::Bridge::Carding;
-* Games::Cards::Bridge::Scoring;
-* Games::Cards::Bridge;
+* Games::Cards::Bridge::Objects
+* Games::Cards::Bridge::Bidding
+* Games::Cards::Bridge::Carding
+* Games::Cards::Bridge::Scoring
+* Games::Cards::Bridge
