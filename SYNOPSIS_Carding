@@ -1,0 +1,75 @@
+use Games::Cards::Bridge::Carding;
+use strict;
+use warnings;
+use v5.10.0;
+
+
+
+# Example from Card Play
+
+my $ex1_carding = Carding->new(
+  declarer=>"S", 
+  trump=>"S", 
+  process => [
+     "TH", "JH", "8H", "2H",  # North wins this trick
+     "9D",
+  ]
+);
+
+say $ex1_carding->remaining_tricks;   # 12
+say $ex1_carding->who_to_play_next;   # "W" (West)
+
+
+
+# Example from Card Play
+
+my $ex2_carding = Carding->new(
+  declarer=>"N", 
+  trump=>"NT", 
+  process => [
+     "4D", "JD", "AD", "6D",  # West wins this trick
+  ]
+);
+
+say $ex2_carding->remaining_tricks;   # 12
+say $ex2_carding->who_to_play_next;   # "W" (West)
+say $ex2_carding->tricks_winned_by_NS;   # 0
+say $ex2_carding->tricks_winned_by_EW;   # 1
+
+
+if ($ex2_carding->is_board_completed) {
+    say "completed";
+}
+else {
+    say "not yet completed";
+}
+
+# "not yet completed"
+
+say @{$ex2_carding->remaining_cards}; 
+# List the remaining 48 cards.
+
+
+
+# Double Dummy Example taken from
+# https://en.wikipedia.org/w/index.php?title=Backwash_squeeze&oldid=707504265
+
+@pile0 = ("KS", "JS", "3H", "2H", "AD", "5D");
+@pile1 = ("QH", "TD", "9D", "4D", "2D", "JC");
+@pile2 = ("AS", "7S", "QD", "8D", "3D", "9C");
+@pile3 = ("8S", "5S", "4S", "KD", "JD", "5C");
+
+my $x_ActDoubleDummy = DoubleDummy->new(
+  pile_N => \@pile0 ,
+  pile_E => \@pile1 ,
+  pile_S => \@pile2 ,
+  pile_W => \@pile3 ,
+  lead=>"N", 
+  trump=>"S", 
+  process => [
+     "AD", "2D", "3D"
+  ]
+);
+
+say $x_ActDoubleDummy->remaining_tricks;    # 6
+say $x_ActDoubleDummy->who_to_play_next;    # W (West)
