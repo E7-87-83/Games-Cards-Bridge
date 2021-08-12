@@ -1,9 +1,12 @@
+# ================== THIS IS A DRAFT ==================
+# ================== 2021-08-11 19:30 HKT ==================
 use Object::Pad 0.51;
 use Object::Pad::SlotAttr::Isa;
 
 package Games::Cards::Bridge::Scoring;
 
 # a port using Object::Pad of Games::Cards::Bridge::Contract
+# originally written by David Westbrook
 # Only dulipcate_score is ported (rubber_score is NOT ported).
 
 # You may check against : http://www.rpbridge.net/2y66.htm
@@ -102,6 +105,7 @@ class Outcome {
     
     }
 }
+# ================== BEGIN Scoring part ========================
 
 class Scoring {
     has $_outcome :param :Isa(Outcome);
@@ -162,41 +166,28 @@ class Scoring {
                 my $partial_score = 50;
 
                 if ($_contract->get_bid <= 2 && $_contract->dbl == 1) {
-                    $partial_score = 100 if $_contract->minor;
-                    $partial_score = 350 if (!$_contract->minor) && (!$_contract->vul) && $_contract->get_bid == 2;
-                    $partial_score = 550 if (!$_contract->minor) && $_contract->vul && $_contract->get_bid == 2;
+                    if ($_contract->minor) {
+                      $partial_score = 100;
+                    }
+                    else {
+                      $partial_score = $_contract->vul ? 550 : 350 if $_contract->get_bid == 2;
+                      $partial_score = 100 if $_contract->get_bid == 1;
+                    }
                 }
 
-                $partial_score = 350 
-                  if $_contract->dbl == 1 && (!$_contract->minor) && (!$_contract->vul) && $_contract->get_bid > 2;
-                $partial_score = 550 
-                  if $_contract->dbl == 1 && (!$_contract->minor) && ($_contract->vul) && $_contract->get_bid > 2;
+                $partial_score = $_contract->vul ? 550 : 350 
+                  if $_contract->dbl == 1 && $_contract->get_bid > 2;
 
-                $partial_score = 100
-                  if $_contract->dbl == 1 && (!$_contract->minor) && (!$_contract->vul) && $_contract->get_bid == 1;
-                $partial_score = 100
-                  if $_contract->dbl == 1 && (!$_contract->minor) && ($_contract->vul) && $_contract->get_bid == 1;
+                if ($_contract->dbl == 2) {
+                    $partial_score = 150
+                      if $_contract->minor && $_contract->get_bid < 2; 
 
-                $partial_score = 350
-                  if $_contract->dbl == 1 && $_contract->minor && (!$_contract->vul) && $_contract->get_bid > 2;  
-                $partial_score = 550
-                  if $_contract->dbl == 1 && $_contract->minor && $_contract->vul && $_contract->get_bid > 2;     
+                    $partial_score = $_contract->vul ? 600 : 400
+                      if $_contract->minor && $_contract->get_bid >= 2;
 
-                $partial_score = 150
-                  if $_contract->dbl == 2 && $_contract->minor && (!$_contract->vul) && $_contract->get_bid < 2; 
-                $partial_score = 150
-                  if $_contract->dbl == 2 && $_contract->minor && $_contract->vul && $_contract->get_bid < 2;    
-
-                $partial_score = 400
-                  if $_contract->dbl == 2 && $_contract->minor && (!$_contract->vul) && $_contract->get_bid >= 2;
-                $partial_score = 600
-                  if $_contract->dbl == 2 && $_contract->minor && $_contract->vul && $_contract->get_bid >= 2;   
-
-                $partial_score = 400
-                  if $_contract->dbl == 2 && (!$_contract->minor) && (!$_contract->vul);      
-                $partial_score = 600
-                  if $_contract->dbl == 2 && (!$_contract->minor) && $_contract->vul;       
-                
+                    $partial_score = $_contract->vul ? 600 : 400
+                      if (!$_contract->minor); 
+                }
                 $score_gained += $partial_score;
 
             }
@@ -239,6 +230,6 @@ class Scoring {
 }
 
 
-# ================== 2021-08-11 19:30 HKT ==================
+# ==================  END  Scoring part ========================
 
 __END__
