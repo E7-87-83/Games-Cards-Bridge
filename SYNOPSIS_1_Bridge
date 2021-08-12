@@ -18,7 +18,7 @@ my $x_auction = Auction->new(
   ]
 );
 
-my $x_contract = $auction->contract;
+my $x_contract = $x_auction->contract;
 
 my $x_carding = Carding->new(process => [
     "5H", "4H", "AH", "TH", # East wins this trick  
