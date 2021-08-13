@@ -1,5 +1,3 @@
-# ================== THIS IS A DRAFT ==================
-# ================== 2021-08-11 19:30 HKT ==================
 use Object::Pad 0.51;
 use Object::Pad::SlotAttr::Isa;
 use Games::Cards::Bridge::Objects;
@@ -50,7 +48,8 @@ class Outcome {
     
     }
 }
-# ================== BEGIN Scoring part ========================
+
+
 
 class Scoring {
     has $_outcome :param :Isa(Outcome);
@@ -63,7 +62,7 @@ class Scoring {
             $score_gained = 0;
             # below: contract points
             my $cntrct_pt = 0;
-            $cntrct_pt += 40 if $_contract->trump eq "N";
+            $cntrct_pt += 40 if $_contract->trump_chr eq "N";
             $cntrct_pt += 30 if $_contract->major;
             $cntrct_pt += 20 if $_contract->minor;
             my $each_cntrct_pt = 0;
@@ -175,6 +174,5 @@ class Scoring {
 }
 
 
-# ==================  END  Scoring part ========================
 
 __END__

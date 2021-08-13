@@ -2,6 +2,7 @@ use strict;
 use warnings;
 use Test::More tests => 840;
 use Games::Cards::Bridge::Scoring;
+use Games::Cards::Bridge::Objects;
 
 # port from Games-Cards-Bridge-Contract-0.02/t/scoring-duplicate.t, 
 # originally written by David Westbrook
@@ -16,8 +17,8 @@ sub check_scores {
     my $vul_val = $i >= 3;
     my $dbl_val = $i % 3;
     my $my_contract = Contract->new(
-            declarer => "N", 
-            trump=>$trump_chr, 
+            declarer => (Player->new(char=>"N")), 
+            trump_chr=>$trump_chr, 
             bid_finalized=>$bid_val, 
             vul=>$vul_val, 
             dbl=>$dbl_val,

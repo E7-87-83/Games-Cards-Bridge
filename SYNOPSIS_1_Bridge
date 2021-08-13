@@ -57,6 +57,6 @@ say "The ", sort($christmas->declarer, $christmas->declarer_partner),
 # The NS side: -400 points.
 
 say "The ", $christmas->declarer_side, " side: ",
-    $christmas->duplicate_score, "points.";
+    $christmas->duplicate_score, " points.";
 
 # The North-South side: -400 points.
