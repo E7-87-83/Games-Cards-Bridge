@@ -62,23 +62,23 @@ class Scoring {
             $score_gained = 0;
             # below: contract points
             my $cntrct_pt = 0;
-            $cntrct_pt += 40 if $_contract->trump_chr eq "N";
-            $cntrct_pt += 30 if $_contract->major;
-            $cntrct_pt += 20 if $_contract->minor;
+            $cntrct_pt += 40 if $_contract->trumpsuit->notrump;
+            $cntrct_pt += 30 if $_contract->trumpsuit->major;
+            $cntrct_pt += 20 if $_contract->trumpsuit->minor;
             my $each_cntrct_pt = 0;
             if ($_contract->get_bid > 1) {
-                if ($_contract->major || $_contract->notrump ) {
-                    $each_cntrct_pt = 30;
+                if ($_contract->trumpsuit->minor) {
+                    $each_cntrct_pt = 20;
                 }
                 else {
-                    $each_cntrct_pt = 20;
+                    $each_cntrct_pt = 30;
                 }
                 $cntrct_pt += $each_cntrct_pt*($_contract->get_bid - 1);
             }
             $cntrct_pt *= (2**($_contract->dbl)); #dbl
             $score_gained += $cntrct_pt;
             # below: overtrick points
-            my $each_over_tk_pt = $_contract->minor ? 20 : 30;
+            my $each_over_tk_pt = $_contract->trumpsuit->minor ? 20 : 30;
             if ($_contract->dbl > 0) {
                 $each_over_tk_pt = 100;
                 $each_over_tk_pt *= 2 if $_contract->dbl == 2;
@@ -110,7 +110,7 @@ class Scoring {
                 my $partial_score = 50;
 
                 if ($_contract->get_bid <= 2 && $_contract->dbl == 1) {
-                    if ($_contract->minor) {
+                    if ($_contract->trumpsuit->minor) {
                       $partial_score = 100;
                     }
                     else {
@@ -124,13 +124,13 @@ class Scoring {
 
                 if ($_contract->dbl == 2) {
                     $partial_score = 150
-                      if $_contract->minor && $_contract->get_bid < 2; 
+                      if $_contract->trumpsuit->minor && $_contract->get_bid < 2; 
 
                     $partial_score = $_contract->vul ? 600 : 400
-                      if $_contract->minor && $_contract->get_bid >= 2;
+                      if $_contract->trumpsuit->minor && $_contract->get_bid >= 2;
 
                     $partial_score = $_contract->vul ? 600 : 400
-                      if (!$_contract->minor); 
+                      if (!$_contract->trumpsuit->minor); 
                 }
                 $score_gained += $partial_score;
 

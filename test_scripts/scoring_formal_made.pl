@@ -17,8 +17,8 @@ sub check_scores {
     my $vul_val = $i >= 3;
     my $dbl_val = $i % 3;
     my $my_contract = Contract->new(
-            declarer => (Player->new(char=>"N")), 
-            trump_chr=>$trump_chr, 
+            declarer => Player->new(char=>"N"), 
+            trumpsuit=> Suit->new(char=>$trump_chr), 
             bid_finalized=>$bid_val, 
             vul=>$vul_val, 
             dbl=>$dbl_val,

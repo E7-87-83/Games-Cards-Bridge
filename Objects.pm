@@ -13,7 +13,9 @@ class Player {
     has $char :reader :param = undef;
     has $fullname :reader :param = undef;
     has $side_name :reader :param = undef;
+    has $custom_name :reader :param = undef;
     has $partner_fullname :reader :param = undef;
+    has $partner_char :reader :param = undef;
 
     BUILD {
         if ($char) {
@@ -38,9 +40,10 @@ class Player {
         $partner_fullname = "North" if $char eq "S";
         $partner_fullname = "West"  if $char eq "E";
         $partner_fullname = "East"  if $char eq "W";
+        $partner_char = substr($partner_fullname,0,1);
 
-#         set partner;
-#  cause infinite loop; return "Segmentation fault (core dumped)"
+#    The following codes cause infinite loop;
+#    return "Segmentation fault (core dumped)"
 #        $partner = Player->new(char=>"S") if $char eq "N";
 #        $partner = Player->new(char=>"N") if $char eq "S";
 #        $partner = Player->new(char=>"E") if $char eq "W";
@@ -54,6 +57,22 @@ class Suit {
     has $char :reader :param = undef;
     has $name :reader :param = undef;
     has $fullname :reader :param = undef;
+    has $minor :reader :param = undef;     # 0 or 1
+    has $major :reader :param = undef;     # 0 or 1
+    has $notrump :reader :param = undef;     # 0 or 1
+
+    method is_minor {
+        return $minor = ($char =~ m/^[CD]$/);
+    }
+
+    method is_major {
+        return $major = ($char =~ m/^[HS]$/);
+    }
+
+    method is_notrump {
+        return $notrump = ($char eq "N");
+    }
+
     BUILD {
         if ($char) {
             $char = uc $char;
@@ -84,6 +103,10 @@ class Suit {
         $fullname = "Heart" if $name eq "H";
         $fullname = "Diamond"  if $name eq "D";
         $fullname = "Club"  if $name eq "C";
+
+        $self->is_minor();
+        $self->is_major();
+        $self->is_notrump();
     }
 }
 
@@ -91,30 +114,15 @@ class Suit {
 
 class Contract {
     has $declarer :param :Isa(Player) = undef;   # N,E,S,W
-    has $trump_chr :reader :param;      # C,D,H,S,N,NT,P
+    has $trumpsuit :reader :param :Isa(Suit);     # C,D,H,S,N,NT
+    has $pass :reader :param = undef;  # 0 or 1
     has $bid_finalized :param = undef; # 1..7
     has $vul :reader :param = undef ;      # 0 or 1
     has $dbl :reader :param = undef; # 0->none 1->X  2->XX
-    has $minor :reader :param = undef;     # 0 or 1
-    has $major :reader :param = undef;     # 0 or 1
-    has $notrump :reader :param = undef;     # 0 or 1
     has $small_slam :reader :param = undef;     # 0 or 1
     has $grand_slam :reader :param = undef;     # 0 or 1
     has $game :reader :param = undef;           # 0 or 1
 
-#
-    method is_minor {
-        return $minor = ($trump_chr =~ m/^[CD]$/);
-    }
-
-    method is_major {
-        return $major = ($trump_chr =~ m/^[HS]$/);
-    }
-
-    method is_notrump {
-        return $notrump = ($trump_chr eq "N");
-    }
-#
 
     method is_small_slam {
         return $small_slam = ($bid_finalized == 6);
@@ -126,11 +134,9 @@ class Contract {
 
     method is_game {
         return $game = 
-             ($trump_chr eq "N" && $bid_finalized >= 3)
-          || ($trump_chr eq "C" && $bid_finalized >= 5)
-          || ($trump_chr eq "D" && $bid_finalized >= 5)
-          || ($trump_chr eq "H" && $bid_finalized >= 4)
-          || ($trump_chr eq "S" && $bid_finalized >= 4);
+             ($trumpsuit->notrump && $bid_finalized >= 3)
+          || ($trumpsuit->minor && $bid_finalized >= 5)
+          || ($trumpsuit->major && $bid_finalized >= 4)
     }
 
     method get_bid {
@@ -138,21 +144,19 @@ class Contract {
     }
 
     method describe {
-        if ($trump_chr eq "P") {
+        if ($pass) {
             return "Pass.";
         }
-        my $trumpsuit = Suit->new(char=>$trump_chr)->name;
         my $vulnerable = $vul ? "vulnerable" : "non-vulnerable";
         my $double_str = $dbl == 0 ? "" : ", ";
         $double_str .= "doubled" if $dbl == 1;
         $double_str .= "redoubled" if $dbl == 2;
-        my $d = Player->new(char=>$declarer);
 
-        return  $d->side_name .": "
-               .$bid_finalized .$trumpsuit .", "
+        return  $declarer->side_name .": "
+               .$bid_finalized .$trumpsuit->name .", "
                .$vulnerable .$double_str ."; "
-               ."declarer: " .$d->fullname ."; "
-               ."dummy: " .$d->partner_fullname .".";
+               ."declarer: " .$declarer->fullname ."; "
+               ."dummy: " .$declarer->partner_fullname .".";
 
         # NS side: 3NT, vulnerable; declarer: South; dummy: North.
     }
@@ -161,17 +165,10 @@ class Contract {
 
     }
 
-    method _format {
-        $trump_chr = "N" if $trump_chr eq "NT";        
-    }
 
     BUILD {
-        $self->_format();
         $self->_validate();
-        if ($trump_chr ne "P") {
-            $self->is_minor();
-            $self->is_major();
-            $self->is_notrump();
+        if (!$pass) {
             $self->is_small_slam();
             $self->is_grand_slam();
             $self->is_game();

@@ -1,5 +1,24 @@
-my $x_contract = Contract->new( declarer => "N", trump=>"S", bid_finalized=>4, vul=>0, dbl=>2);
-my $end_board = Outcome->new(contract=>$x_contract, tricks_winned => 11);
-my $score = Scoring->new(outcome=>$end_board);
+use Games::Cards::Bridge::Scoring;
+use Games::Cards::Bridge::Objects;
+use strict;
+use warnings;
+use v5.10.0;
+
+my $person_N = Player->new(char=>"N", custom_name=>"Norman");
+
+my $x_contract = Contract->new(
+    declarer =>$person_N, 
+    trumpsuit=>Suit->new(char=>"H"), 
+    bid_finalized=>4, 
+    vul=>0, 
+    dbl=>2,
+);
+my $end_board = Outcome->new(
+    contract=>$x_contract, 
+    tricks_winned => 11,
+);
+my $score = Scoring->new(
+    outcome=>$end_board,
+);
 
 say $score->duplicate_score;  # output: 1080

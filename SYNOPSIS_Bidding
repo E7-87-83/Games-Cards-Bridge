@@ -1,9 +1,13 @@
-# SYNOPSIS
-
 use Games::Cards::Bridge::Bidding;
+use Games::Cards::Bridge::Objects;
+use strict;
+use warnings;
+use v5.10.0;
+
+my $person_N = Player->new(char=>"N", custom_name=>"Norman");
 
 my $ex1_auction = Auction->new(
-    dealer => "N", 
+    dealer => $person_N, 
     vul_NS => 0 , 
     vul_EW => 0 , 
     process => [
@@ -18,5 +22,5 @@ say $ex1_auction->is_legitimate;  # print 1
 
 say $ex1_auction->is_completed;   # print 1
 
-say $ex1_auction->contract->describe_contract;  
+say $ex1_auction->contract->describe;  
 # NS side: 3NT, non-vulnerable; declarer: North; dummy: South 

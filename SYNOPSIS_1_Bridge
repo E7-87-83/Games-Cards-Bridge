@@ -1,12 +1,14 @@
-# SYNOPSIS
-
 use Games::Cards::Bridge;
 use strict;
 use warnings;
 use v5.10.0;
 
+
+my $person_S = Player->new(char=>"S", custom_name=>"Salvador");
+my $person_E = Player->new(char=>"E", custom_name=>"Endy");
+
 my $x_auction = Auction->new(
-    dealer => "E", 
+    dealer => $person_E, 
     vul_NS => 1 , 
     vul_EW => 1 , 
     process => [
@@ -20,7 +22,8 @@ my $x_auction = Auction->new(
 
 my $x_contract = $x_auction->contract;
 
-my $x_carding = Carding->new(declarer=>"S", trump=>"NT", process => [
+
+my $x_carding = Carding->new(declarer=>$person_S, trumpsuit=>Suit->new(name=>"NT"), process => [
     "5H", "4H", "AH", "TH", # East wins this trick  
     "2S", "AS", "7S", "6S", # South wins this trick
     "QD", "KD", "AD", "4D", # North wins this trick
@@ -50,11 +53,6 @@ say $christmas->describe_contract;
 say $christmas->describe_outcome;
 
 # 5 Tricks Taken; Down 4.
-
-say "The ", sort($christmas->declarer, $christmas->declarer_partner), 
-    " side: ", $christmas->duplicate_score, "points.";
-
-# The NS side: -400 points.
 
 say "The ", $christmas->declarer_side, " side: ",
     $christmas->duplicate_score, " points.";
