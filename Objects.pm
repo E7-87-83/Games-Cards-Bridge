@@ -1,6 +1,8 @@
 use Object::Pad 0.51;
 use Object::Pad::SlotAttr::Isa;
-
+use experimental 'signatures', 'switch';
+use Carp;
+use v5.10.0;
 package Games::Cards::Bridge::Objects;
 
 # For the contract part,
@@ -9,6 +11,137 @@ package Games::Cards::Bridge::Objects;
 
 # get inspired by Games::Cards::Card (written by Amir Karger) as well
 
+#sub legal_card_name {
+#}
+
+sub legal_contract_name ($c){
+    return 1 
+      if     $c =~ /^[1-7][SHDCN][x]{0,2}$/ 
+          || $c =~ /^[1-7]NT[x]{0,2}$/     ;
+    carp("Cannot identify this contract: $c\n");
+}
+
+
+sub _get_suit_char ($c) {
+    my $char = substr($c, -1, 1);
+    return $char if $char =~ /^[SHDC]$/;
+    carp("Cannot get the suit of $c\n");
+}
+
+
+sub _get_num ($c) {
+    return substr($c, 0, 1) 
+      if $c =~ /^[2-9][SHDC]$/ || $c =~ /^[AKQJT][SHDC]$/;
+    return "T" if $c =~ /^10[SHDC]$/;
+    carp("Cannot get the card number of $c\n");
+}
+
+
+# ========== BEGIN: card actions =================
+sub trick_winner {
+}
+
+sub is_trumpsuit {
+}
+
+
+# ========== END: card actions ===================
+
+class Pile {
+    has $set_of_cards :reader :param;
+    has $trumpsuit :reader :param :Isa(Suit);
+    has $suit_order :param = undef;
+
+    method _suit_sort {
+        given($trumpsuit->char) {
+            when ("S") {
+                 $suit_order = {"S" => 0, "H" => 1,
+                                "D" => 2, "C" => 3};
+            }
+            when ("H") {
+                 $suit_order = {"H" => 0, "S" => 1,
+                                "D" => 2, "C" => 3};
+            }
+            when ("D") {
+                 $suit_order = {"D" => 0, "S" => 1,
+                                "H" => 2, "C" => 3};
+            }
+            when ("C") {
+                 $suit_order = {"C" => 0, "H" => 1,
+                                "S" => 2, "D" => 3};
+            }
+            default {
+                 $suit_order = {"S" => 0, "H" => 1,
+                                "C" => 2, "D" => 3}; 
+            }
+        }
+    }
+
+    method sort_trump_first {
+        my %ord_suit = $suit_order->%*;
+        my $card_order = [ "A" , "K", "Q", "J", "T", reverse 2..9];
+        my %ord_num;
+        $ord_num{ $card_order->[$_] } = $_ for (0..$card_order->$#*);
+
+        $set_of_cards->@* = (sort {
+          $ord_suit{_get_suit($a)} <=> $ord_suit{_get_suit($b)}
+                                  ||
+          $ord_num{_get_num($a)} <=> $ord_num{_get_num($b)};
+        } $set_of_cards->@*);
+        return @{$set_of_cards};
+    }
+
+    method sort_regular {
+        my %ord_suit = ("S" => 0, "H" => 1,
+                        "C" => 2, "D" => 3); 
+        my $card_order = [ "A" , "K", "Q", "J", "T", reverse 2..9];
+        my %ord_num;
+        $ord_num{ $card_order->[$_] } = $_ for (0..$card_order->$#*);
+
+        $set_of_cards->@* = (sort{
+          $ord_suit{_get_suit($a)} <=> $ord_suit{_get_suit($b)}
+                              ||
+          $ord_num{_get_num($a)} <=> $ord_num{_get_num($b)};
+         } $set_of_cards->@*);
+        return @{$set_of_cards};
+    }
+
+    method sort_trump_first_singlecolour {
+        my @normal_suits = qw/S H D C/;
+        my %ord_suit;
+        my @ord_suit_helper;
+        my $card_order = [ "A" , "K", "Q", "J", "T", reverse 2..9];
+        my %ord_num;
+        $ord_num{ $card_order->[$_] } = $_ for (0..$card_order->$#*);
+
+        if ($trumpsuit->char ne "N") {
+            @ord_suit_helper = (
+                $trumpsuit->char, 
+                grep { $_ ne $trumpsuit->char} qw/S H D C/
+            );
+        }
+        else {
+            @ord_suit_helper = [qw/S H D C/];
+        }
+        $ord_suit{ $ord_suit_helper[$_] } = $_ for (0..$#ord_suit_helper);
+        $set_of_cards->@* = (sort{
+          $ord_suit{_get_suit($a)} <=> $ord_suit{_get_suit($b)}
+                                  ||
+          $ord_num{_get_num($a)} <=> $ord_num{_get_num($b)};
+        } $set_of_cards->@*);
+        return @{$set_of_cards}
+    }
+
+    method card_leave_pile {
+        my $card;
+        return $card;
+    }
+
+    BUILD {
+        $self->_suit_sort();
+    }
+}
+
 class Player {
     has $char :reader :param = undef;
     has $fullname :reader :param = undef;
@@ -16,6 +149,7 @@ class Player {
     has $custom_name :reader :param = undef;
     has $partner_fullname :reader :param = undef;
     has $partner_char :reader :param = undef;
+    has $next_char :reader :param = undef;
 
     BUILD {
         if ($char) {
@@ -48,6 +182,12 @@ class Player {
 #        $partner = Player->new(char=>"N") if $char eq "S";
 #        $partner = Player->new(char=>"E") if $char eq "W";
 #        $partner = Player->new(char=>"W") if $char eq "E";
+
+        $next_char = "E" if $char eq "N";
+        $next_char = "S"  if $char eq "E";
+        $next_char = "W" if $char eq "S";
+        $next_char = "N"  if $char eq "W";
+
     }
 }
 
@@ -162,7 +302,7 @@ class Contract {
     }
 
     method _validate {
-
+        return 1;            #to be written
     }
 
 
@@ -175,3 +315,6 @@ class Contract {
         }
     }
 }
+
+
+__END__

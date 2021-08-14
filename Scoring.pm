@@ -1,7 +1,8 @@
 use Object::Pad 0.51;
 use Object::Pad::SlotAttr::Isa;
 use Games::Cards::Bridge::Objects;
-
+use Carp;
+use v5.10.0;
 package Games::Cards::Bridge::Scoring;
 
 # a port using Object::Pad of Games::Cards::Bridge::Contract
@@ -54,10 +55,10 @@ class Outcome {
 class Scoring {
     has $_outcome :param :Isa(Outcome);
     has $_contract :param :Isa(Contract) = undef;
-    has $score_gained :param = undef;           
-    has $penalty_points :param = undef;
 
     method duplicate_score {
+        my $score_gained = undef;           
+        my $penalty_points = undef;
         if ($_outcome->contract_made) {
             $score_gained = 0;
             # below: contract points

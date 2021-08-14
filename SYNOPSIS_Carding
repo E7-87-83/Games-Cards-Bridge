@@ -5,13 +5,20 @@ use warnings;
 use v5.10.0;
 
 
-my $person_S = Player->new(char=>"S", custom_name=>"Salvador");
-my $person_N = Player->new(char=>"N", custom_name=>"Norman");
+my $person_S = Player->new(
+        char=>"S", 
+        custom_name=>"Salvador",
+);
+my $person_N = Player->new(
+        char=>"N", 
+        custom_name=>"Norman",
+);
 
 # Example from Card Play (I)
 
 my $ex1_carding = Carding->new(
   declarer=>$person_S, 
+  fullgame=>1,
   trumpsuit=>Suit->new(char=>"S"), 
   process => [
      "TH", "JH", "8H", "2H",  # North wins this trick
@@ -20,7 +27,7 @@ my $ex1_carding = Carding->new(
 );
 
 say $ex1_carding->remaining_tricks;   # 12
-say $ex1_carding->who_to_play_next;   # "E" (East)
+say $ex1_carding->who_to_play_next->char;   # "E" (East)
 say $ex1_carding->is_trick_completed;    # print 0
 say $ex1_carding->is_board_completed;    # print 0
 say $ex1_carding->is_legitimate;  # print 1
@@ -29,7 +36,8 @@ say $ex1_carding->is_legitimate;  # print 1
 # Example from Card Play (II)
 
 my $ex2_carding = Carding->new(
-  declarer=>$person_N, 
+  declarer=>$person_N,
+  fullgame=>1,
   trumpsuit=>Suit->new(name=>"NT"), 
   process => [
      "4D", "JD", "AD", "6D",  # West wins this trick
@@ -37,25 +45,13 @@ my $ex2_carding = Carding->new(
 );
 
 say $ex2_carding->remaining_tricks;   # 12
-say $ex2_carding->who_to_play_next;   # "W" (West)
+say $ex2_carding->who_to_play_next->char;   # "W" (West)
 say $ex2_carding->tricks_winned_by_NS;   # 0
 say $ex2_carding->tricks_winned_by_EW;   # 1
 say $ex2_carding->is_trick_completed;    # print 1
 say $ex2_carding->is_board_completed;    # print 0
 say $ex2_carding->is_legitimate;  # print 1
-
-
-if ($ex2_carding->is_board_completed) {
-    say "completed";
-}
-else {
-    say "not yet completed";
-}
-
-# "not yet completed"
-
-say @{$ex2_carding->remaining_cards}; 
-# List the remaining 48 cards.
+say @{$ex2_carding->remaining_cards};  # List the remaining 48 cards.
 
 
 
@@ -72,8 +68,7 @@ my $x_ActDoubleDummy = DoubleDummy->new(
   pile_E => \@pile1 ,
   pile_S => \@pile2 ,
   pile_W => \@pile3 ,
-  lead_side => "N", 
-# lead_player => Player->new(char=>"N"), 
+  lead_player => Player->new(char=>"N"), 
   trumpsuit=>Suit->new(char=>"S"),
   process => [
      "AD", "2D", "3D"
@@ -81,4 +76,11 @@ my $x_ActDoubleDummy = DoubleDummy->new(
 );
 
 say $x_ActDoubleDummy->remaining_tricks;    # 6
-say $x_ActDoubleDummy->who_to_play_next;    # W (West)
+say $x_ActDoubleDummy->is_trick_completed;    # print 0
+say $x_ActDoubleDummy->who_to_play_next->char;    # W (West)
+
+say @{$x_ActDoubleDummy->remaining_cards};  
+# List the remaining cards.
+
+say @{$x_ActDoubleDummy->remaining_pile_N};  
+# List the remaining cards of the North's hand.

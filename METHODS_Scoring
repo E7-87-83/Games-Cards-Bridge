@@ -1,0 +1,5 @@
+=head1 METHODS
+
+=head2 duplicate_score()
+
+Calculate the score or penalty points of the declaring side in duplicate bridge scoring system.
